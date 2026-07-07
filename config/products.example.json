@@ -1,0 +1,58 @@
+{
+  "products": [
+    {
+      "id": "fileguard",
+      "name": "FileGuard",
+      "appBaseUrl": "http://localhost:5173",
+      "allowedReturnOrigins": [
+        "http://localhost:5173",
+        "https://fileguard.helixrs.com"
+      ],
+      "entra": {
+        "clientIdEnv": "FILEGUARD_ENTRA_CLIENT_ID",
+        "clientSecretEnv": "FILEGUARD_ENTRA_CLIENT_SECRET",
+        "authorityTenant": "organizations",
+        "scopes": ["openid", "profile", "email"]
+      },
+      "tenantAllowlist": [
+        {
+          "tenantId": "00000000-0000-0000-0000-000000000000",
+          "name": "GSK",
+          "status": "approved"
+        }
+      ],
+      "roleMap": {
+        "Admin": "admin",
+        "Editor": "editor",
+        "Viewer": "viewer"
+      }
+    },
+    {
+      "id": "nextapp",
+      "name": "NextApp",
+      "appBaseUrl": "http://localhost:5174",
+      "allowedReturnOrigins": [
+        "http://localhost:5174",
+        "https://nextapp.helixrs.com"
+      ],
+      "entra": {
+        "clientIdEnv": "NEXTAPP_ENTRA_CLIENT_ID",
+        "clientSecretEnv": "NEXTAPP_ENTRA_CLIENT_SECRET",
+        "authorityTenant": "organizations",
+        "scopes": ["openid", "profile", "email"]
+      },
+      "tenantAllowlist": [
+        {
+          "tenantId": "00000000-0000-0000-0000-000000000000",
+          "name": "GSK",
+          "status": "not_subscribed"
+        }
+      ],
+      "roleMap": {
+        "Admin": "admin",
+        "Editor": "editor",
+        "Viewer": "viewer"
+      }
+    }
+  ]
+}
