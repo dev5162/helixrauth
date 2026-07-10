@@ -7,7 +7,7 @@ import { HandoffStore } from "./handoff-store.js";
 import { appendQueryParam, resolveReturnUrl } from "./return-url.js";
 import { signAuthState, verifyAuthState } from "./state.js";
 import { createGatewayToken, getJwks, verifyGatewayToken } from "./tokens.js";
-import { getProduct } from "./config.js";
+import { getProduct } from "./product-store.js";
 import type { AppConfig, ProductConfig } from "./types.js";
 
 type AsyncHandler = (request: Request, response: Response, next: NextFunction) => Promise<void>;
@@ -22,13 +22,13 @@ function asyncHandler(handler: AsyncHandler) {
   };
 }
 
-function productFromRequest(config: AppConfig, request: Request): ProductConfig {
+async function productFromRequest(config: AppConfig, request: Request): Promise<ProductConfig> {
   const productId = request.params.productId;
   if (typeof productId !== "string") {
     throw new HttpError(400, "Invalid product ID.", "invalid_product_id");
   }
 
-  const product = getProduct(config, productId);
+  const product = await getProduct(config, productId);
   if (!product) {
     throw new HttpError(404, "Unknown product.", "unknown_product");
   }
@@ -61,7 +61,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
   router.get(
     "/auth/:productId/login",
     asyncHandler(async (request, response) => {
-      const product = productFromRequest(config, request);
+      const product = await productFromRequest(config, request);
       const returnUrl = resolveReturnUrl(product, request.query.returnUrl?.toString());
       const state = await signAuthState(config.stateSecret, {
         productId: product.id,
@@ -81,7 +81,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
       }
 
       const state = await verifyAuthState(config.stateSecret, stateToken);
-      const product = getProduct(config, state.productId);
+      const product = await getProduct(config, state.productId);
       if (!product) {
         throw new HttpError(400, "Auth state references an unknown product.", "unknown_product");
       }
@@ -110,7 +110,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
   router.post(
     "/auth/:productId/exchange",
     asyncHandler(async (request, response) => {
-      const product = productFromRequest(config, request);
+      const product = await productFromRequest(config, request);
       const body = exchangeBodySchema.parse(request.body);
       const identity = handoffStore.consume(body.code);
 
@@ -130,7 +130,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
   router.post(
     "/auth/:productId/verify",
     asyncHandler(async (request, response) => {
-      const product = productFromRequest(config, request);
+      const product = await productFromRequest(config, request);
       const payload = await verifyGatewayToken(config, product, bearerToken(request));
       response.json({
         active: true,
@@ -142,7 +142,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
   router.get(
     "/auth/:productId/admin-consent",
     asyncHandler(async (request, response) => {
-      const product = productFromRequest(config, request);
+      const product = await productFromRequest(config, request);
       const returnUrl = resolveReturnUrl(product, request.query.returnUrl?.toString());
       const state = await signAuthState(config.stateSecret, {
         productId: product.id,

@@ -15,11 +15,11 @@
         "scopes": ["openid", "profile", "email"]
       },
       "tenantAllowlist": [
-        {
-          "tenantId": "00000000-0000-0000-0000-000000000000",
-          "name": "GSK",
-          "status": "approved"
-        }
+         {
+    "tenantId": "5c9aac62-85aa-46ea-a16c-2f05a8d31601",
+    "name": "Helixr Ltd",
+    "status": "approved"
+  }
       ],
       "roleMap": {
         "Admin": "Admin",

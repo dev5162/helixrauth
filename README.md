@@ -29,10 +29,20 @@ npm run dev
 
 The service starts on `http://localhost:8080` by default.
 
+For local browser testing, `CORS_ALLOWED_ORIGINS=http://localhost:5173`
+allows the FileGuard dev frontend to call the gateway exchange endpoint
+directly. Leave this empty in production unless browser-to-gateway calls are
+intentional.
+
 ## Required configuration
 
 `PRODUCT_CONFIG_PATH` points to a JSON file describing products, allowed return
-origins, Entra app registrations, tenant allowlists, and role maps.
+origins, Entra app registrations, tenant allowlists, and role maps. This is the
+local fallback.
+
+For production, set `DATABASE_URL` and run the migrations. When `DATABASE_URL`
+is set, the gateway reads product config, redirect origins, tenant access, and
+role mappings from SQL Server instead of relying on `products.json`.
 
 For production, set:
 
@@ -70,6 +80,14 @@ For local development only, `SESSION_SIGNING_ALG=HS256` can be used with
    { "code": "..." }
    ```
 
+   For local development only, the FileGuard frontend may call the gateway
+   directly when its origin is listed in `CORS_ALLOWED_ORIGINS`:
+
+   ```text
+   POST http://localhost:8080/auth/fileguard/exchange
+   { "code": "..." }
+   ```
+
 6. Product verifies the returned JWT locally from `/.well-known/jwks.json`, or
    by calling:
 
@@ -77,6 +95,48 @@ For local development only, `SESSION_SIGNING_ALG=HS256` can be used with
    POST /auth/:productId/verify
    Authorization: Bearer <gateway-token>
    ```
+
+The gateway does not expose `GET /api/auth/me`. That endpoint belongs in the
+FileGuard backend, which owns the browser session.
+
+## Database-backed config
+
+Run migrations against SQL Server:
+
+```bash
+DATABASE_URL="Server=4.234.176.215,3389;Database=<database>;User Id=HXR8-DEV-SQL;Password=<password>;Encrypt=True;TrustServerCertificate=True" npm run db:migrate
+```
+
+Seed the database from `config/products.json`:
+
+```bash
+DATABASE_URL="Server=4.234.176.215,3389;Database=<database>;User Id=HXR8-DEV-SQL;Password=<password>;Encrypt=True;TrustServerCertificate=True" DEFAULT_AUTHORITY_TENANT_ID=<tenant-guid> npm run db:seed-products
+```
+
+The first migration creates:
+
+- `Products`
+- `ProductRedirectOrigins`
+- `ProductEntraConfigs`
+- `ProductRoleMappings`
+- `TenantPRoductAccess`
+- `AuditLogs`
+
+The DB field `ClientSecretRef` can store an environment variable name such as
+`FILEGUARD_ENTRA_CLIENT_SECRET`, `env:FILEGUARD_ENTRA_CLIENT_SECRET`, or a future
+Key Vault reference.
+
+## Admin app
+
+A starter Next.js admin app lives under `admin/`.
+
+```bash
+DATABASE_URL="Server=4.234.176.215,3389;Database=<database>;User Id=HXR8-DEV-SQL;Password=<password>;Encrypt=True;TrustServerCertificate=True" npm run admin:dev
+```
+
+It runs on `http://localhost:3001` and can list, create, and update product
+records. Tenant and role management tables are in place for the next admin UI
+pass.
 
 ## Security notes
 
@@ -92,6 +152,9 @@ For local development only, `SESSION_SIGNING_ALG=HS256` can be used with
 
 ```bash
 npm run dev
+npm run db:migrate
+npm run db:seed-products
+npm run admin:dev
 npm run build
 npm test
 npm run typecheck

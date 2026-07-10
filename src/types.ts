@@ -12,8 +12,10 @@ export interface ProductConfig {
   appBaseUrl: string;
   allowedReturnOrigins: string[];
   entra: {
-    clientIdEnv: string;
-    clientSecretEnv: string;
+    clientIdEnv?: string;
+    clientSecretEnv?: string;
+    clientId?: string;
+    clientSecretRef?: string;
     authorityTenant: string;
     scopes: string[];
   };
@@ -25,6 +27,8 @@ export interface AppConfig {
   nodeEnv: string;
   port: number;
   publicBaseUrl: string;
+  corsAllowedOrigins: string[];
+  databaseUrl?: string;
   sessionIssuer: string;
   sessionTtlSeconds: number;
   handoffCodeTtlSeconds: number;

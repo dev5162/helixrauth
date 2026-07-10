@@ -36,7 +36,7 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function readProducts(configPath: string): ProductConfig[] {
+export function readProducts(configPath: string): ProductConfig[] {
   const resolved = path.resolve(configPath);
   const parsed = productsFileSchema.parse(JSON.parse(fs.readFileSync(resolved, "utf8")));
   return parsed.products.map((product) => ({
@@ -45,8 +45,20 @@ function readProducts(configPath: string): ProductConfig[] {
   }));
 }
 
+export function parseCorsAllowedOrigins(value: string | undefined): string[] {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+}
+
 export function loadConfig(): AppConfig {
   const productConfigPath = process.env.PRODUCT_CONFIG_PATH ?? "./config/products.json";
+  const databaseUrl = process.env.DATABASE_URL;
   const sessionAlg = process.env.SESSION_SIGNING_ALG ?? "HS256";
 
   const sessionSigning =
@@ -65,12 +77,14 @@ export function loadConfig(): AppConfig {
     nodeEnv: process.env.NODE_ENV ?? "development",
     port: Number(process.env.PORT ?? 8080),
     publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:8080",
+    corsAllowedOrigins: parseCorsAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS),
+    databaseUrl,
     sessionIssuer: process.env.SESSION_ISSUER ?? "https://auth.helixrs.com",
     sessionTtlSeconds: Number(process.env.SESSION_TTL_SECONDS ?? 60 * 60 * 8),
     handoffCodeTtlSeconds: Number(process.env.HANDOFF_CODE_TTL_SECONDS ?? 120),
     stateSecret: requireEnv("STATE_SECRET"),
     sessionSigning,
-    products: readProducts(productConfigPath),
+    products: databaseUrl && !fs.existsSync(path.resolve(productConfigPath)) ? [] : readProducts(productConfigPath),
   };
 }
 

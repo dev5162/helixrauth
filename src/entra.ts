@@ -14,9 +14,32 @@ function redirectUri(config: AppConfig): string {
   return new URL("/auth/callback", config.publicBaseUrl).toString();
 }
 
+function resolveAuthorityTenant(product: ProductConfig): string {
+  return product.entra.authorityTenant === "00000000-0000-0000-0000-000000000000"
+    ? "organizations"
+    : product.entra.authorityTenant;
+}
+
+function resolveClientSecret(product: ProductConfig): string | undefined {
+  if (product.entra.clientSecretEnv) {
+    return process.env[product.entra.clientSecretEnv];
+  }
+
+  const ref = product.entra.clientSecretRef;
+  if (!ref) {
+    return undefined;
+  }
+
+  if (ref.startsWith("env:")) {
+    return process.env[ref.slice("env:".length)];
+  }
+
+  return process.env[ref] ?? ref;
+}
+
 function clientFor(product: ProductConfig): ConfidentialClientApplication {
-  const clientId = process.env[product.entra.clientIdEnv];
-  const clientSecret = process.env[product.entra.clientSecretEnv];
+  const clientId = product.entra.clientId ?? (product.entra.clientIdEnv ? process.env[product.entra.clientIdEnv] : undefined);
+  const clientSecret = resolveClientSecret(product);
 
   if (!clientId || !clientSecret) {
     throw new HttpError(
@@ -30,7 +53,7 @@ function clientFor(product: ProductConfig): ConfidentialClientApplication {
     auth: {
       clientId,
       clientSecret,
-      authority: `https://login.microsoftonline.com/${product.entra.authorityTenant}`,
+      authority: `https://login.microsoftonline.com/${resolveAuthorityTenant(product)}`,
     },
   });
 }
@@ -82,12 +105,12 @@ export async function exchangeCodeForUser(
 }
 
 export function getAdminConsentUrl(config: AppConfig, product: ProductConfig, state: string): string {
-  const clientId = process.env[product.entra.clientIdEnv];
+  const clientId = product.entra.clientId ?? (product.entra.clientIdEnv ? process.env[product.entra.clientIdEnv] : undefined);
   if (!clientId) {
     throw new HttpError(500, `Missing Entra client ID for product ${product.id}.`, "missing_entra_client_id");
   }
 
-  const url = new URL(`https://login.microsoftonline.com/${product.entra.authorityTenant}/v2.0/adminconsent`);
+  const url = new URL(`https://login.microsoftonline.com/${resolveAuthorityTenant(product)}/v2.0/adminconsent`);
   url.searchParams.set("client_id", clientId);
   url.searchParams.set("redirect_uri", new URL("/auth/admin-consent/callback", config.publicBaseUrl).toString());
   url.searchParams.set("state", state);

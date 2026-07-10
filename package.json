@@ -5,7 +5,11 @@
   "type": "module",
   "description": "Shared Microsoft Entra SSO gateway for Helixrs applications.",
   "scripts": {
+    "admin:build": "next build admin",
+    "admin:dev": "next dev admin -p 3001",
     "dev": "tsx watch src/index.ts",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed-products": "tsx src/db/seed-products.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "test": "vitest run",
@@ -18,6 +22,10 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jose": "^6.0.11",
+    "mssql": "^11.0.1",
+    "next": "^15.3.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "morgan": "^1.10.0",
     "zod": "^3.25.76"
   },
@@ -25,7 +33,10 @@
     "@types/cookie": "^0.6.0",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
+    "@types/mssql": "^9.1.8",
     "@types/node": "^24.0.10",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
