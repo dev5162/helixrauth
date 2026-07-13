@@ -1,4 +1,9 @@
-import { createProductAction, updateProductAction } from "./products/actions";
+import {
+  createProductAction,
+  updateProductAction,
+  upsertRoleMappingAction,
+  upsertTenantAccessAction,
+} from "./products/actions";
 import { listAdminProducts, type AdminProduct } from "../lib/products";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +43,34 @@ function ProductForm({ product }: { product?: AdminProduct }) {
         <textarea name="origins" defaultValue={origins} />
       </label>
       <button type="submit">{product ? "Update product" : "Create product"}</button>
+    </form>
+  );
+}
+
+function TenantForm({ product }: { product: AdminProduct }) {
+  return (
+    <form className="compact-form" action={upsertTenantAccessAction}>
+      <input type="hidden" name="productId" value={product.id} />
+      <input name="tenantId" placeholder="Tenant GUID" />
+      <input name="tenantName" placeholder="Tenant name" />
+      <select name="status" defaultValue="approved">
+        <option value="approved">Approved</option>
+        <option value="not_subscribed">Not subscribed</option>
+        <option value="blocked">Blocked</option>
+      </select>
+      <input name="approvedBy" placeholder="Approved by" />
+      <button type="submit">Save tenant</button>
+    </form>
+  );
+}
+
+function RoleMappingForm({ product }: { product: AdminProduct }) {
+  return (
+    <form className="compact-form" action={upsertRoleMappingAction}>
+      <input type="hidden" name="productId" value={product.id} />
+      <input name="entraRole" placeholder="Entra role, e.g. Admin" />
+      <input name="gatewayRole" placeholder="Gateway role, e.g. admin" />
+      <button type="submit">Save role</button>
     </form>
   );
 }
@@ -96,6 +129,37 @@ export default async function Home() {
             <div className="panel stack" key={`${product.slug}-edit`}>
               <h2>Edit {product.name}</h2>
               <ProductForm product={product} />
+              <div className="management-grid">
+                <section className="stack">
+                  <h3>Tenant access</h3>
+                  <TenantForm product={product} />
+                  <div className="table-list">
+                    {product.tenants.length === 0 ? <p className="muted">No tenants configured.</p> : null}
+                    {product.tenants.map((tenant) => (
+                      <div className="detail-row" key={tenant.id}>
+                        <div>
+                          <strong>{tenant.tenantName}</strong>
+                          <p className="muted">{tenant.tenantId}</p>
+                        </div>
+                        <span className={`status ${tenant.status}`}>{tenant.status.replace("_", " ")}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+                <section className="stack">
+                  <h3>Role mappings</h3>
+                  <RoleMappingForm product={product} />
+                  <div className="table-list">
+                    {product.roleMappings.length === 0 ? <p className="muted">No role mappings configured.</p> : null}
+                    {product.roleMappings.map((role) => (
+                      <div className="detail-row" key={role.id}>
+                        <strong>{role.entraRole}</strong>
+                        <p className="muted">{role.gatewayRole}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
             </div>
           ))}
         </section>

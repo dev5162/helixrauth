@@ -9,8 +9,25 @@ export type AdminProduct = {
   clientSecretRef: string | null;
   authorityTenant: string | null;
   origins: string[];
+  tenants: AdminTenantAccess[];
+  roleMappings: AdminRoleMapping[];
   tenantCount: number;
   roleCount: number;
+};
+
+export type AdminTenantAccess = {
+  id: number;
+  tenantId: string;
+  tenantName: string;
+  status: "approved" | "not_subscribed" | "blocked";
+  approvedBy: string | null;
+  approvedAt: Date | null;
+};
+
+export type AdminRoleMapping = {
+  id: number;
+  entraRole: string;
+  gatewayRole: string;
 };
 
 export type ProductInput = {
@@ -21,6 +38,20 @@ export type ProductInput = {
   clientSecretRef: string;
   authorityTenant: string;
   origins: string[];
+};
+
+export type TenantAccessInput = {
+  productId: number;
+  tenantId: string;
+  tenantName: string;
+  status: "approved" | "not_subscribed" | "blocked";
+  approvedBy?: string;
+};
+
+export type RoleMappingInput = {
+  productId: number;
+  entraRole: string;
+  gatewayRole: string;
 };
 
 type ProductRow = {
@@ -37,6 +68,21 @@ type ProductRow = {
 
 type OriginRow = {
   Origin: string;
+};
+
+type TenantRow = {
+  ID: number;
+  Tenant_ID: string;
+  Tenant_Name: string;
+  Status: "approved" | "not_subscribed" | "blocked";
+  Approved_By: string | null;
+  Approved_At: Date | null;
+};
+
+type RoleRow = {
+  ID: number;
+  Entra_Role: string;
+  Gateway_Role: string;
 };
 
 export async function listAdminProducts(): Promise<AdminProduct[]> {
@@ -67,6 +113,30 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
         .request()
         .input("productId", sql.Int, row.ID)
         .query<OriginRow>("SELECT Origin FROM ProductRedirectOrigins WHERE Product_ID = @productId ORDER BY Origin");
+      const tenants = await pool
+        .request()
+        .input("productId", sql.Int, row.ID)
+        .query<TenantRow>(`
+          SELECT
+            ID,
+            CONVERT(nvarchar(36), Tenant_ID) AS Tenant_ID,
+            Tenant_Name,
+            Status,
+            Approved_By,
+            Approved_At
+          FROM TenantPRoductAccess
+          WHERE Product_ID = @productId
+          ORDER BY Tenant_Name
+        `);
+      const roleMappings = await pool
+        .request()
+        .input("productId", sql.Int, row.ID)
+        .query<RoleRow>(`
+          SELECT ID, Entra_Role, Gateway_Role
+          FROM ProductRoleMappings
+          WHERE Product_ID = @productId
+          ORDER BY Entra_Role
+        `);
 
       return {
         id: row.ID,
@@ -77,6 +147,19 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
         clientSecretRef: row.ClientSecretRef,
         authorityTenant: row.AuthorityTenant,
         origins: origins.recordset.map((origin) => origin.Origin),
+        tenants: tenants.recordset.map((tenant) => ({
+          id: tenant.ID,
+          tenantId: tenant.Tenant_ID,
+          tenantName: tenant.Tenant_Name,
+          status: tenant.Status,
+          approvedBy: tenant.Approved_By,
+          approvedAt: tenant.Approved_At,
+        })),
+        roleMappings: roleMappings.recordset.map((role) => ({
+          id: role.ID,
+          entraRole: role.Entra_Role,
+          gatewayRole: role.Gateway_Role,
+        })),
         tenantCount: Number(row.TenantCount),
         roleCount: Number(row.RoleCount),
       };
@@ -100,6 +183,69 @@ export async function createProduct(input: ProductInput): Promise<void> {
 
 export async function updateProduct(input: ProductInput): Promise<void> {
   await createProduct(input);
+}
+
+export async function upsertTenantAccess(input: TenantAccessInput): Promise<void> {
+  const pool = await requireAdminPool();
+  await pool
+    .request()
+    .input("productId", sql.Int, input.productId)
+    .input("tenantId", sql.UniqueIdentifier, input.tenantId)
+    .input("tenantName", sql.NVarChar(200), input.tenantName)
+    .input("status", sql.NVarChar(50), input.status)
+    .input("approvedBy", sql.NVarChar(200), input.approvedBy || null)
+    .query(`
+      MERGE TenantPRoductAccess AS target
+      USING (
+        SELECT
+          @productId AS Product_ID,
+          @tenantId AS Tenant_ID,
+          @tenantName AS Tenant_Name,
+          @status AS Status,
+          @approvedBy AS Approved_By
+      ) AS source
+        ON target.Product_ID = source.Product_ID AND target.Tenant_ID = source.Tenant_ID
+      WHEN MATCHED THEN
+        UPDATE SET
+          Tenant_Name = source.Tenant_Name,
+          Status = source.Status,
+          Approved_By = source.Approved_By,
+          Approved_At = CASE WHEN source.Status = 'approved' THEN COALESCE(target.Approved_At, SYSUTCDATETIME()) ELSE NULL END
+      WHEN NOT MATCHED THEN
+        INSERT (Product_ID, Tenant_ID, Tenant_Name, Status, Approved_By, Approved_At)
+        VALUES (
+          source.Product_ID,
+          source.Tenant_ID,
+          source.Tenant_Name,
+          source.Status,
+          source.Approved_By,
+          CASE WHEN source.Status = 'approved' THEN SYSUTCDATETIME() ELSE NULL END
+        );
+    `);
+}
+
+export async function upsertRoleMapping(input: RoleMappingInput): Promise<void> {
+  const pool = await requireAdminPool();
+  await pool
+    .request()
+    .input("productId", sql.Int, input.productId)
+    .input("entraRole", sql.NVarChar(200), input.entraRole)
+    .input("gatewayRole", sql.NVarChar(200), input.gatewayRole)
+    .query(`
+      MERGE ProductRoleMappings AS target
+      USING (
+        SELECT
+          @productId AS Product_ID,
+          @entraRole AS Entra_Role,
+          @gatewayRole AS Gateway_Role
+      ) AS source
+        ON target.Product_ID = source.Product_ID AND target.Entra_Role = source.Entra_Role
+      WHEN MATCHED THEN
+        UPDATE SET Gateway_Role = source.Gateway_Role
+      WHEN NOT MATCHED THEN
+        INSERT (Product_ID, Entra_Role, Gateway_Role)
+        VALUES (source.Product_ID, source.Entra_Role, source.Gateway_Role);
+    `);
 }
 
 async function requireAdminPool(): Promise<sql.ConnectionPool> {
