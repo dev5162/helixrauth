@@ -31,14 +31,17 @@ function resolveClientSecret(product: ProductConfig): string | undefined {
   }
 
   if (ref.startsWith("env:")) {
-    return process.env[ref.slice("env:".length)];
+    return ref.slice("env:".length);
   }
 
   return process.env[ref] ?? ref;
 }
 
 function clientFor(product: ProductConfig): ConfidentialClientApplication {
+  console.log(product,"saleem")
   const clientId = product.entra.clientId ?? (product.entra.clientIdEnv ? process.env[product.entra.clientIdEnv] : undefined);
+  console.log(clientId,"clientId")
+  console.log(resolveClientSecret(product),"resolveClientSecret(product)")
   const clientSecret = resolveClientSecret(product);
 
   if (!clientId || !clientSecret) {

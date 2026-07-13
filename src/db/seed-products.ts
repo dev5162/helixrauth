@@ -21,7 +21,7 @@ function authorityTenant(productAuthority: string): string {
 
 async function main() {
   const config = loadConfig();
-  const pool = await getPool(config.databaseUrl);
+  const pool = await getPool();
   const transaction = pool.transaction();
 
   await transaction.begin();
