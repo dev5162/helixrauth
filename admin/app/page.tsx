@@ -14,35 +14,43 @@ function ProductForm({ product }: { product?: AdminProduct }) {
 
   return (
     <form className="form" action={action}>
+      <div className="form-row">
+        <label>
+          Product slug
+          <input name="slug" defaultValue={product?.slug ?? ""} readOnly={Boolean(product)} placeholder="fileguard" />
+        </label>
+        <label>
+          Name
+          <input name="name" defaultValue={product?.name ?? ""} placeholder="FileGuard" />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>
+          App base URL
+          <input name="appBaseUrl" defaultValue={product?.appBaseUrl ?? ""} placeholder="https://fileguard.helixrs.com" />
+        </label>
+        <label>
+          Entra client ID
+          <input name="clientId" defaultValue={product?.clientId ?? ""} placeholder="eeebd2df-bd9b-43b0-8763-0c47a8be0aad" />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>
+          Client secret reference
+          <input name="clientSecretRef" defaultValue={product?.clientSecretRef ?? "FILEGUARD_ENTRA_CLIENT_SECRET"} />
+        </label>
+        <label>
+          Authority tenant
+          <input name="authorityTenant" defaultValue={product?.authorityTenant ?? "00000000-0000-0000-0000-000000000000"} />
+        </label>
+      </div>
       <label>
-        Product slug
-        <input name="slug" defaultValue={product?.slug ?? ""} readOnly={Boolean(product)} placeholder="fileguard" />
-      </label>
-      <label>
-        Name
-        <input name="name" defaultValue={product?.name ?? ""} placeholder="FileGuard" />
-      </label>
-      <label>
-        App base URL
-        <input name="appBaseUrl" defaultValue={product?.appBaseUrl ?? ""} placeholder="https://fileguard.helixrs.com" />
-      </label>
-      <label>
-        Entra client ID
-        <input name="clientId" defaultValue={product?.clientId ?? ""} placeholder="eeebd2df-bd9b-43b0-8763-0c47a8be0aad" />
-      </label>
-      <label>
-        Client secret reference
-        <input name="clientSecretRef" defaultValue={product?.clientSecretRef ?? "FILEGUARD_ENTRA_CLIENT_SECRET"} />
-      </label>
-      <label>
-        Authority tenant
-        <input name="authorityTenant" defaultValue={product?.authorityTenant ?? "00000000-0000-0000-0000-000000000000"} />
-      </label>
-      <label>
-        Allowed return origins
+        Allowed return origins (one per line)
         <textarea name="origins" defaultValue={origins} />
       </label>
-      <button type="submit">{product ? "Update product" : "Create product"}</button>
+        <div className="form-actions">
+          <button type="submit">{product ? "Update product" : "Create product"}</button>
+        </div>
     </form>
   );
 }
@@ -59,7 +67,7 @@ function TenantForm({ product }: { product: AdminProduct }) {
         <option value="blocked">Blocked</option>
       </select>
       <input name="approvedBy" placeholder="Approved by" />
-      <button type="submit">Save tenant</button>
+      <button type="submit">Save</button>
     </form>
   );
 }
@@ -70,7 +78,7 @@ function RoleMappingForm({ product }: { product: AdminProduct }) {
       <input type="hidden" name="productId" value={product.id} />
       <input name="entraRole" placeholder="Entra role, e.g. Admin" />
       <input name="gatewayRole" placeholder="Gateway role, e.g. admin" />
-      <button type="submit">Save role</button>
+      <button type="submit">Save</button>
     </form>
   );
 }
@@ -79,91 +87,193 @@ export default async function Home() {
   const products = await listAdminProducts();
   const databaseConfigured = Boolean(process.env.DATABASE_URL);
 
+  const totalTenants = products.reduce((sum, p) => sum + p.tenantCount, 0);
+  const totalRoles = products.reduce((sum, p) => sum + p.roleCount, 0);
+
   return (
-    <main>
-      <header>
-        <div className="stack">
-          <p className="muted">Helixrs Auth Gateway</p>
-          <h1>Product Admin</h1>
+    <div className="page">
+      <header className="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p className="subtitle">Helixrs Auth Gateway administration</p>
         </div>
-        <p className="muted">Backed by the identity config database</p>
       </header>
 
       {!databaseConfigured ? (
         <section className="panel warning stack">
-          <h2>Database not configured</h2>
-          <p className="muted">Set DATABASE_URL, run migrations, and restart the admin app to manage products.</p>
+          <div className="warning-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div>
+            <h2>Database not configured</h2>
+            <p className="muted">Set <code>DATABASE_URL</code>, run migrations, and restart the admin app to manage products.</p>
+          </div>
         </section>
       ) : null}
 
-      <section className="grid">
-        <div className="panel stack">
-          <h2>Products</h2>
-          <div className="product-list">
-            {products.length === 0 ? <p className="muted">No products yet.</p> : null}
-            {products.map((product) => (
-              <div className="product-row" key={product.slug}>
-                <div>
-                  <h3>{product.name}</h3>
-                  <p className="muted">{product.slug}</p>
-                </div>
-                <p className="muted">{product.appBaseUrl}</p>
-                <span className="status active">configured</span>
-                <p className="muted">
-                  {product.tenantCount} tenants · {product.roleCount} roles
-                </p>
-              </div>
-            ))}
-          </div>
+      <section className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-value">{products.length}</div>
+          <div className="stat-label">Products</div>
         </div>
+        <div className="stat-card">
+          <div className="stat-value">{totalTenants}</div>
+          <div className="stat-label">Tenants</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{totalRoles}</div>
+          <div className="stat-label">Role mappings</div>
+        </div>
+      </section>
 
-        <div className="panel stack">
+      <section id="products" className="section">
+        <div className="section-header">
+          <h2>Products</h2>
+        </div>
+        <div className="panel">
+          {products.length === 0 ? (
+            <div className="empty-state">
+              <p className="muted">No products configured yet. Add your first product below.</p>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Base URL</th>
+                    <th>Client ID</th>
+                    <th>Tenants</th>
+                    <th>Roles</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product) => (
+                    <tr key={product.slug} className="product-table-row">
+                      <td><strong>{product.name}</strong></td>
+                      <td><code>{product.slug}</code></td>
+                      <td><span className="url-text">{product.appBaseUrl}</span></td>
+                      <td><code className="code-sm">{product.clientId}</code></td>
+                      <td>{product.tenantCount}</td>
+                      <td>{product.roleCount}</td>
+                      <td><span className="status active">configured</span></td>
+                      <td>
+                        <a className="button-icon" aria-label="Edit" href={`#edit-${product.slug}`}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-header">
           <h2>Add product</h2>
+        </div>
+        <div className="panel">
           <ProductForm />
         </div>
       </section>
 
       {products.length > 0 ? (
-        <section className="stack" style={{ marginTop: 18 }}>
+        <section className="section stack">
           {products.map((product) => (
-            <div className="panel stack" key={`${product.slug}-edit`}>
-              <h2>Edit {product.name}</h2>
-              <ProductForm product={product} />
-              <div className="management-grid">
+            <div className="panel stack product-detail" key={`${product.slug}-edit`} id={`edit-${product.slug}`}>
+              <div className="product-detail-header">
+                <div>
+                  <h2>Edit {product.name}</h2>
+                  <p className="muted">Manage configuration for <code>{product.slug}</code></p>
+                </div>
+              </div>
+
+              <div className="tabs">
+                <div className="tab active">Configuration</div>
+              </div>
+
+              <div className="tab-content">
+                <ProductForm product={product} />
+              </div>
+
+              <div className="management-grid" id="tenants">
                 <section className="stack">
-                  <h3>Tenant access</h3>
+                  <div className="section-header">
+                    <h3>Tenant access</h3>
+                    <span className="badge">{product.tenants.length}</span>
+                  </div>
                   <TenantForm product={product} />
-                  <div className="table-list">
-                    {product.tenants.length === 0 ? <p className="muted">No tenants configured.</p> : null}
-                    {product.tenants.map((tenant) => (
-                      <div className="detail-row" key={tenant.id}>
-                        <div>
-                          <strong>{tenant.tenantName}</strong>
-                          <p className="muted">{tenant.tenantId}</p>
-                        </div>
-                        <span className={`status ${tenant.status}`}>{tenant.status.replace("_", " ")}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {product.tenants.length === 0 ? (
+                    <div className="empty-state small">
+                      <p className="muted">No tenants configured for this product.</p>
+                    </div>
+                  ) : (
+                    <div className="table-wrap">
+                      <table className="data-table compact">
+                        <thead>
+                          <tr>
+                            <th>Tenant name</th>
+                            <th>Tenant ID</th>
+                            <th>Status</th>
+                            <th>Approved by</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {product.tenants.map((tenant) => (
+                            <tr key={tenant.id}>
+                              <td><strong>{tenant.tenantName}</strong></td>
+                              <td><code className="code-sm">{tenant.tenantId}</code></td>
+                              <td><span className={`status ${tenant.status}`}>{tenant.status.replace("_", " ")}</span></td>
+                              <td>{tenant.approvedBy}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </section>
-                <section className="stack">
-                  <h3>Role mappings</h3>
-                  <RoleMappingForm product={product} />
-                  <div className="table-list">
-                    {product.roleMappings.length === 0 ? <p className="muted">No role mappings configured.</p> : null}
-                    {product.roleMappings.map((role) => (
-                      <div className="detail-row" key={role.id}>
-                        <strong>{role.entraRole}</strong>
-                        <p className="muted">{role.gatewayRole}</p>
-                      </div>
-                    ))}
+                <section className="stack" id="roles">
+                  <div className="section-header">
+                    <h3>Role mappings</h3>
+                    <span className="badge">{product.roleMappings.length}</span>
                   </div>
+                  <RoleMappingForm product={product} />
+                  {product.roleMappings.length === 0 ? (
+                    <div className="empty-state small">
+                      <p className="muted">No role mappings configured for this product.</p>
+                    </div>
+                  ) : (
+                    <div className="table-wrap">
+                      <table className="data-table compact">
+                        <thead>
+                          <tr>
+                            <th>Entra role</th>
+                            <th>Gateway role</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {product.roleMappings.map((role) => (
+                            <tr key={role.id}>
+                              <td><strong>{role.entraRole}</strong></td>
+                              <td><code className="code-sm">{role.gatewayRole}</code></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </section>
               </div>
             </div>
           ))}
         </section>
       ) : null}
-    </main>
+    </div>
   );
 }
