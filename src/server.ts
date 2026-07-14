@@ -17,6 +17,6 @@ export function createServer(config: AppConfig) {
     app.use(morgan("combined"));
   }
 
-  app.use(createRouter(config));
+  app.use("/api", createRouter(config));
   return app;
 }

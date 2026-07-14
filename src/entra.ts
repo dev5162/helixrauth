@@ -11,7 +11,7 @@ export interface EntraUser {
 }
 
 function redirectUri(config: AppConfig): string {
-  return new URL("/auth/callback", config.publicBaseUrl).toString();
+  return new URL("/api/auth/callback", config.publicBaseUrl).toString();
 }
 
 function resolveAuthorityTenant(product: ProductConfig): string {
@@ -115,7 +115,7 @@ export function getAdminConsentUrl(config: AppConfig, product: ProductConfig, st
 
   const url = new URL(`https://login.microsoftonline.com/${resolveAuthorityTenant(product)}/v2.0/adminconsent`);
   url.searchParams.set("client_id", clientId);
-  url.searchParams.set("redirect_uri", new URL("/auth/admin-consent/callback", config.publicBaseUrl).toString());
+    url.searchParams.set("redirect_uri", new URL("/api/auth/admin-consent/callback", config.publicBaseUrl).toString());
   url.searchParams.set("state", state);
   return url.toString();
 }
