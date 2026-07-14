@@ -21,7 +21,7 @@ jobs:
             cd /d "C:\Users\HXR8-QA-SQL\Downloads" || exit /b 1
 
             if not exist "helixrauth" (
-              git clone -b main https://${{ secrets.REPO_PAT }}@github.com/HXR8DEV/helixrauth.git helixrauth
+              git clone -b main https://${{ secrets.REPO_PAT }}@github.com/dev5162/helixrauth.git helixrauth
             )
 
             cd helixrauth || exit /b 1
