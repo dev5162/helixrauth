@@ -42,7 +42,7 @@ jobs:
             if errorlevel 1 exit /b 1
 
             pm2 delete helixrauth-dev
-            pm2 start cmd --name "helixrauth-dev" -- /c "set PORT=5102&& node dist\src\index.js"
+            pm2 start cmd --name "helixrauth-dev" -- /c "set PORT=5002&& node dist\src\index.js"
 
             pm2 startup windows -u HXR8-QA-SQL --hp C:\Users\HXR8-QA-SQL
             pm2 save
