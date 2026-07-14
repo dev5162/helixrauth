@@ -54,6 +54,11 @@ jobs:
             echo SESSION_ISSUER=${{ secrets.SESSION_ISSUER }}
             echo SESSION_TTL_SECONDS=${{ secrets.SESSION_TTL_SECONDS }}
             echo HANDOFF_CODE_TTL_SECONDS=${{ secrets.HANDOFF_CODE_TTL_SECONDS }}
+            echo SQL_SERVER=${{ secrets.SQL_SERVER }}
+            echo SQL_DATABASE=${{ secrets.SQL_DATABASE }}
+            echo SQL_USER=${{ secrets.SQL_USER }}
+            echo SQL_PASSWORD=${{ secrets.SQL_PASSWORD }}
+            echo SQL_PORT=${{ secrets.SQL_PORT }}
             ) > .env
 
             pm2 delete helixrauth-dev

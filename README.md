@@ -128,15 +128,16 @@ Key Vault reference.
 
 ## Admin app
 
-A starter Next.js admin app lives under `admin/`.
+The admin UI is now server-side rendered with React and served by the main
+Express gateway. It is mounted automatically when `DATABASE_URL` is set.
 
 ```bash
-DATABASE_URL="Server=4.234.176.215,3389;Database=<database>;User Id=HXR8-DEV-SQL;Password=<password>;Encrypt=True;TrustServerCertificate=True" npm run admin:dev
+DATABASE_URL="Server=4.234.176.215,3389;Database=<database>;User Id=HXR8-DEV-SQL;Password=<password>;Encrypt=True;TrustServerCertificate=True" npm run dev
 ```
 
-It runs on `http://localhost:3001` and can list, create, and update product
-records. Tenant and role management tables are in place for the next admin UI
-pass.
+It runs at `http://localhost:8080/admin` and can list, create, and update product
+records. Tenant and role management tables are available on each product edit
+card.
 
 ## Security notes
 
@@ -154,7 +155,6 @@ pass.
 npm run dev
 npm run db:migrate
 npm run db:seed-products
-npm run admin:dev
 npm run build
 npm test
 npm run typecheck

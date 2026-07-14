@@ -1,19 +1,11 @@
-import {
-  createProductAction,
-  updateProductAction,
-  upsertRoleMappingAction,
-  upsertTenantAccessAction,
-} from "./products/actions";
-import { listAdminProducts, type AdminProduct } from "../lib/products";
-
-export const dynamic = "force-dynamic";
+import type { AdminProduct } from "./products.js";
 
 function ProductForm({ product }: { product?: AdminProduct }) {
-  const action = product ? updateProductAction : createProductAction;
+  const action = product ? "/admin/products/update" : "/admin/products/create";
   const origins = product?.origins.join("\n") ?? "http://localhost:5173";
 
   return (
-    <form className="form" action={action}>
+    <form className="form" action={action} method="post">
       <div className="form-row">
         <label>
           Product slug
@@ -48,16 +40,17 @@ function ProductForm({ product }: { product?: AdminProduct }) {
         Allowed return origins (one per line)
         <textarea name="origins" defaultValue={origins} />
       </label>
-        <div className="form-actions">
-          <button type="submit">{product ? "Update product" : "Create product"}</button>
-        </div>
+      {product && <input type="hidden" name="id" value={product.id} />}
+      <div className="form-actions">
+        <button type="submit">{product ? "Update product" : "Create product"}</button>
+      </div>
     </form>
   );
 }
 
 function TenantForm({ product }: { product: AdminProduct }) {
   return (
-    <form className="compact-form" action={upsertTenantAccessAction}>
+    <form className="compact-form" action="/admin/tenants" method="post">
       <input type="hidden" name="productId" value={product.id} />
       <input name="tenantId" placeholder="Tenant GUID" />
       <input name="tenantName" placeholder="Tenant name" />
@@ -74,7 +67,7 @@ function TenantForm({ product }: { product: AdminProduct }) {
 
 function RoleMappingForm({ product }: { product: AdminProduct }) {
   return (
-    <form className="compact-form" action={upsertRoleMappingAction}>
+    <form className="compact-form" action="/admin/roles" method="post">
       <input type="hidden" name="productId" value={product.id} />
       <input name="entraRole" placeholder="Entra role, e.g. Admin" />
       <input name="gatewayRole" placeholder="Gateway role, e.g. admin" />
@@ -83,10 +76,7 @@ function RoleMappingForm({ product }: { product: AdminProduct }) {
   );
 }
 
-export default async function Home() {
-  const products = await listAdminProducts();
-  const databaseConfigured = Boolean(process.env.DATABASE_URL);
-
+export function AdminPage({ products, databaseConfigured }: { products: AdminProduct[]; databaseConfigured: boolean }) {
   const totalTenants = products.reduce((sum, p) => sum + p.tenantCount, 0);
   const totalRoles = products.reduce((sum, p) => sum + p.roleCount, 0);
 

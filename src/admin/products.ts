@@ -1,4 +1,4 @@
-import { getAdminPool, sql } from "./db";
+import { getAdminPool, sql } from "./db.js";
 
 export type AdminProduct = {
   id: number;

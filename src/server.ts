@@ -3,6 +3,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { createCorsMiddleware } from "./cors.js";
 import { createRouter } from "./routes.js";
+import { createAdminRouter, closeAdmin } from "./admin/routes.js";
 import type { AppConfig } from "./types.js";
 
 export function createServer(config: AppConfig) {
@@ -12,11 +13,21 @@ export function createServer(config: AppConfig) {
   app.use(helmet());
   app.use(createCorsMiddleware(config));
   app.use(express.json({ limit: "64kb" }));
+  app.use(express.urlencoded({ extended: true }));
 
   if (config.nodeEnv !== "test") {
     app.use(morgan("combined"));
   }
 
   app.use(createRouter(config));
+
+  if (config.databaseUrl) {
+    app.use(createAdminRouter());
+  }
+
   return app;
+}
+
+export async function shutdownServer() {
+  await closeAdmin();
 }

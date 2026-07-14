@@ -8,7 +8,6 @@ const dbConfig: sql.config = {
   user: process.env.SQL_USER ?? "HXR8-DEV-SQL",
   password: process.env.SQL_PASSWORD ?? "12@Sodium2019",
 
-  // Replace this with your actual database name
   database: process.env.SQL_DATABASE ?? "PlatformCore",
 
   options: {
@@ -29,9 +28,8 @@ const dbConfig: sql.config = {
 
 function enableKeepAlive(p: sql.ConnectionPool): void {
   p.on("connection", (connection) => {
-    const socket = (connection as unknown as { socket?: import("net").Socket })
-      .socket;
-    socket?.setKeepAlive(true, 60000);
+    const socket = connection as unknown as { socket?: import("net").Socket };
+    socket.socket?.setKeepAlive(true, 60000);
   });
 }
 
