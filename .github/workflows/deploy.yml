@@ -21,7 +21,7 @@ jobs:
             cd /d "C:\Users\HXR8-QA-SQL\Downloads" || exit /b 1
 
             if not exist "helixrauth" (
-              git clone -b main https://github.com/HXR8DEV/helixrauth.git helixrauth
+              git clone -b main https://${{ secrets.REPO_PAT }}@github.com/HXR8DEV/helixrauth.git helixrauth
             )
 
             cd helixrauth || exit /b 1
@@ -42,7 +42,7 @@ jobs:
             if errorlevel 1 exit /b 1
 
             pm2 delete helixrauth-dev
-            pm2 start cmd --name "helixrauth-dev" -- /c "set "PORT=5102" && node dist\src\index.js"
+            pm2 start cmd --name "helixrauth-dev" -- /c "set PORT=5102&& node dist\src\index.js"
 
             pm2 startup windows -u HXR8-QA-SQL --hp C:\Users\HXR8-QA-SQL
             pm2 save
