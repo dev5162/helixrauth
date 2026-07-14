@@ -18,26 +18,34 @@ jobs:
       - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            set -e
-            cd /opt/helixrauth || exit 1
+            cd /d "C:\Users\HXR8-QA-SQL\Downloads" || exit /b 1
 
-            if [ ! -d ".git" ]; then
-              git clone -b main https://github.com/HXR8DEV/helixrauth.git .
-            fi
+            if not exist "helixrauth" (
+              git clone -b main https://github.com/HXR8DEV/helixrauth.git helixrauth
+            )
+
+            cd helixrauth || exit /b 1
 
             git fetch origin main
             git reset --hard origin/main
 
-            npm ci
-            npm run typecheck
-            npm run build
+            call npm ci
+            if errorlevel 1 exit /b 1
 
-            npm ci --omit=dev
+            call npm run typecheck
+            if errorlevel 1 exit /b 1
 
-            pm2 delete helixrauth || true
-            PORT=5002 pm2 start dist/src/index.js --name helixrauth
+            call npm run build
+            if errorlevel 1 exit /b 1
 
-            pm2 startup systemd -u ${{ secrets.SSH_USER }} --hp /home/${{ secrets.SSH_USER }}
+            call npm ci --omit=dev
+            if errorlevel 1 exit /b 1
+
+            pm2 delete helixrauth-dev
+            pm2 start cmd --name "helixrauth-dev" -- /c "set "PORT=5102" && node dist\src\index.js"
+
+            pm2 startup windows -u HXR8-QA-SQL --hp C:\Users\HXR8-QA-SQL
             pm2 save
-            sudo nginx -t && sudo nginx -s reload
+
+            nginx -t && nginx -s reload
           EOF
