@@ -1,0 +1,43 @@
+name: Deploy HelixrAuth
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to server
+        run: |
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+            cd /opt/helixrauth || exit 1
+
+            if [ ! -d ".git" ]; then
+              git clone -b main https://github.com/HXR8DEV/helixrauth.git .
+            fi
+
+            git fetch origin main
+            git reset --hard origin/main
+
+            npm ci
+            npm run typecheck
+            npm run build
+
+            npm ci --omit=dev
+
+            pm2 delete helixrauth || true
+            PORT=5002 pm2 start dist/src/index.js --name helixrauth
+
+            pm2 startup systemd -u ${{ secrets.SSH_USER }} --hp /home/${{ secrets.SSH_USER }}
+            pm2 save
+            sudo nginx -t && sudo nginx -s reload
+          EOF

@@ -3,13 +3,13 @@ import sql from "mssql";
 let pool: sql.ConnectionPool | undefined;
 
 const dbConfig: sql.config = {
-  server: process.env.SQL_SERVER ?? "4.234.176.215",
-  port: Number(process.env.SQL_PORT ?? 1401),
-  user: process.env.SQL_USER ?? "HXR8-DEV-SQL",
-  password: process.env.SQL_PASSWORD ?? "12@Sodium2019",
+  server: process.env.SQL_SERVER ?? "",
+  port: Number(process.env.SQL_PORT ?? 1433),
+  user: process.env.SQL_USER ?? "H",
+  password: process.env.SQL_PASSWORD ?? "",
 
   // Replace with the actual database name
-  database: process.env.SQL_DATABASE ?? "PlatformCore",
+  database: process.env.SQL_DATABASE ?? "",
 
   options: {
     encrypt: true,

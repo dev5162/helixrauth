@@ -77,7 +77,7 @@ export function loadConfig(): AppConfig {
     nodeEnv: process.env.NODE_ENV ?? "development",
     port: Number(process.env.PORT ?? 8080),
     publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:8080",
-    corsAllowedOrigins: parseCorsAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS),
+    corsAllowedOrigins: parseCorsAllowedOrigins(process.env.CORS_ALLOWED_ORIGINS) ?? ["*"],
     databaseUrl,
     sessionIssuer: process.env.SESSION_ISSUER ?? "https://auth.helixrs.com",
     sessionTtlSeconds: Number(process.env.SESSION_TTL_SECONDS ?? 60 * 60 * 8),
