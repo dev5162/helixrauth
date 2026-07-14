@@ -41,10 +41,24 @@ jobs:
             call npm ci --omit=dev
             if errorlevel 1 exit /b 1
 
-            pm2 delete helixrauth-dev
+           (
+            echo NODE_ENV=${{ secrets.NODE_ENV }}
+            echo PORT=${{ secrets.PORT }}
+            echo PUBLIC_BASE_URL=${{ secrets.PUBLIC_BASE_URL }}
+            echo PRODUCT_CONFIG_PATH=${{ secrets.PRODUCT_CONFIG_PATH }}
+            echo CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+            echo DATABASE_URL=${{ secrets.DATABASE_URL }}
+            echo STATE_SECRET=${{ secrets.STATE_SECRET }}
+            echo SESSION_SIGNING_ALG=${{ secrets.SESSION_SIGNING_ALG }}
+            echo SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+            echo SESSION_ISSUER=${{ secrets.SESSION_ISSUER }}
+            echo SESSION_TTL_SECONDS=${{ secrets.SESSION_TTL_SECONDS }}
+            echo HANDOFF_CODE_TTL_SECONDS=${{ secrets.HANDOFF_CODE_TTL_SECONDS }}
+            ) > .env
+
             pm2 delete helixrauth-dev
 
-            pm2 start cmd --name "helixrauth-dev" -- /c "set NODE_ENV=${{ vars.NODE_ENV }}&& set PORT=${{ vars.PORT }}&& set PUBLIC_BASE_URL=${{ vars.PUBLIC_BASE_URL }}&& set PRODUCT_CONFIG_PATH=${{ vars.PRODUCT_CONFIG_PATH }}&& set CORS_ALLOWED_ORIGINS=${{ vars.CORS_ALLOWED_ORIGINS }}&& set DATABASE_URL=${{ secrets.DATABASE_URL }}&& set STATE_SECRET=${{ secrets.STATE_SECRET }}&& set SESSION_SIGNING_ALG=${{ vars.SESSION_SIGNING_ALG }}&& set SESSION_SECRET=${{ secrets.SESSION_SECRET }}&& set SESSION_ISSUER=${{ vars.SESSION_ISSUER }}&& set SESSION_TTL_SECONDS=${{ vars.SESSION_TTL_SECONDS }}&& set HANDOFF_CODE_TTL_SECONDS=${{ vars.HANDOFF_CODE_TTL_SECONDS }}&& node dist\src\index.js"
+            pm2 start cmd --name "helixrauth-dev" -- /c "node dist\src\index.js"
 
             pm2 startup windows -u HXR8-QA-SQL --hp C:\Users\HXR8-QA-SQL
             pm2 save
