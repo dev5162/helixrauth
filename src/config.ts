@@ -58,7 +58,7 @@ export function parseCorsAllowedOrigins(value: string | undefined): string[] {
 
 export function loadConfig(): AppConfig {
   const productConfigPath = process.env.PRODUCT_CONFIG_PATH ?? "./config/products.json";
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = "True";
   const sessionAlg = process.env.SESSION_SIGNING_ALG ?? "HS256";
 
   const sessionSigning =
