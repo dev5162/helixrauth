@@ -48,7 +48,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
   const router = express.Router();
 
   router.get("/health", (_request, response) => {
-    response.json({ ok: true });
+    response.json({ ok: true, env: process.env });
   });
 
   router.get(
