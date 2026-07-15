@@ -4,6 +4,7 @@ import morgan from "morgan";
 import { createCorsMiddleware } from "./cors.js";
 import { createRouter } from "./routes.js";
 import { createAdminRouter, closeAdmin } from "./admin/routes.js";
+import { HandoffStore } from "./handoff-store.js";
 import type { AppConfig } from "./types.js";
 
 export function createServer(config: AppConfig) {
@@ -19,10 +20,11 @@ export function createServer(config: AppConfig) {
     app.use(morgan("combined"));
   }
 
-  app.use(createRouter(config));
+  const handoffStore = new HandoffStore(config.handoffCodeTtlSeconds);
+  app.use(createRouter(config, handoffStore));
 
   if (config.databaseUrl) {
-    app.use(createAdminRouter());
+    app.use(createAdminRouter(config, handoffStore));
   }
 
   return app;

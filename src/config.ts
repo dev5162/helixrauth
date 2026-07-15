@@ -45,9 +45,9 @@ export function readProducts(configPath: string): ProductConfig[] {
   }));
 }
 
-export function parseCorsAllowedOrigins(value: string | undefined): string[] {
-  if (!value) {
-    return [];
+export function parseCorsAllowedOrigins(value: string | undefined): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
   }
 
   return value
