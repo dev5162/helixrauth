@@ -2,7 +2,9 @@ name: Deploy HelixrAuth
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
