@@ -3,6 +3,7 @@ import type { AdminProduct } from "./products.js";
 function ProductForm({ product }: { product?: AdminProduct }) {
   const action = product ? "/admin/products/update" : "/admin/products/create";
   const origins = product?.origins.join("\n") ?? "http://localhost:5173";
+  const scopes = product?.scopes.join("\n") ?? "openid\nprofile\nemail";
 
   return (
     <form className="form" action={action} method="post">
@@ -39,6 +40,10 @@ function ProductForm({ product }: { product?: AdminProduct }) {
       <label>
         Allowed return origins (one per line)
         <textarea name="origins" defaultValue={origins} />
+      </label>
+      <label>
+        Entra scopes (one per line)
+        <textarea name="scopes" defaultValue={scopes} />
       </label>
       {product && <input type="hidden" name="id" value={product.id} />}
       <div className="form-actions">

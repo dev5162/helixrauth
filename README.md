@@ -99,6 +99,26 @@ For local development only, `SESSION_SIGNING_ALG=HS256` can be used with
 The gateway does not expose `GET /api/auth/me`. That endpoint belongs in the
 FileGuard backend, which owns the browser session.
 
+## Admin consent
+
+To simplify onboarding enterprise clients, the gateway provides a built-in admin consent flow. Instead of manually constructing a Microsoft `adminconsent` URL, you can provide the client's IT Administrator with a simple link to the gateway:
+
+1. Send the client's IT Admin to the gateway's admin consent route:
+
+   ```text
+   GET /auth/:productId/admin-consent
+   ```
+
+2. The gateway will automatically construct the correct Microsoft URL using the product's configured Entra App settings and redirect the admin to Microsoft.
+
+3. After the admin clicks "Accept" on behalf of their organization, Microsoft redirects them back to the gateway:
+
+   ```text
+   GET /auth/admin-consent/callback
+   ```
+
+4. The gateway verifies the result and redirects the admin to the product's success page, completing the installation of the app in their tenant.
+
 ## Database-backed config
 
 Run migrations against SQL Server:

@@ -28,6 +28,10 @@ function productInputFromForm(body: Record<string, unknown>): ProductInput {
       .split(/\r?\n|,/)
       .map((origin) => origin.trim())
       .filter(Boolean),
+    scopes: optionalString(body, "scopes")
+      .split(/\r?\n|,/)
+      .map((scope) => scope.trim())
+      .filter(Boolean),
   };
 }
 
