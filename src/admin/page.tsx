@@ -19,7 +19,7 @@ function ProductForm({ product }: { product?: AdminProduct }) {
       <div className="form-row">
         <label>
           App base URL
-          <input name="appBaseUrl" defaultValue={product?.appBaseUrl ?? ""} placeholder="https://fileguard.helixrs.com" />
+          <input name="appBaseUrl" defaultValue={product?.appBaseUrl ?? ""} placeholder="https://gatr.helixrs.com" />
         </label>
         <label>
           Entra client ID

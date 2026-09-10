@@ -6,7 +6,7 @@
       "appBaseUrl": "http://localhost:5173",
       "allowedReturnOrigins": [
         "http://localhost:5173",
-        "https://fileguard.helixrs.com"
+        "https://gatr.helixrs.com"
       ],
       "entra": {
         "clientIdEnv": "FILEGUARD_ENTRA_CLIENT_ID",
