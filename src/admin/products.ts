@@ -9,6 +9,7 @@ export type AdminProduct = {
   clientSecretRef: string | null;
   authorityTenant: string | null;
   origins: string[];
+  scopes: string[];
   tenants: AdminTenantAccess[];
   roleMappings: AdminRoleMapping[];
   tenantCount: number;
@@ -38,6 +39,7 @@ export type ProductInput = {
   clientSecretRef: string;
   authorityTenant: string;
   origins: string[];
+  scopes: string[];
 };
 
 export type TenantAccessInput = {
@@ -62,6 +64,7 @@ type ProductRow = {
   Client_ID: string | null;
   ClientSecretRef: string | null;
   AuthorityTenant: string | null;
+  Scopes: string | null;
   TenantCount: number;
   RoleCount: number;
 };
@@ -100,6 +103,7 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
       CONVERT(nvarchar(36), e.Client_ID) AS Client_ID,
       e.ClientSecretRef,
       CONVERT(nvarchar(36), e.AuthorityTenant) AS AuthorityTenant,
+      e.Scopes,
       (SELECT COUNT(1) FROM TenantPRoductAccess t WHERE t.Product_ID = p.ID) AS TenantCount,
       (SELECT COUNT(1) FROM ProductRoleMappings r WHERE r.Product_ID = p.ID) AS RoleCount
     FROM Products p
@@ -147,6 +151,7 @@ export async function listAdminProducts(): Promise<AdminProduct[]> {
         clientSecretRef: row.ClientSecretRef,
         authorityTenant: row.AuthorityTenant,
         origins: origins.recordset.map((origin) => origin.Origin),
+        scopes: row.Scopes ? JSON.parse(row.Scopes) : ["openid", "profile", "email"],
         tenants: tenants.recordset.map((tenant) => ({
           id: tenant.ID,
           tenantId: tenant.Tenant_ID,
@@ -282,7 +287,7 @@ async function upsertProduct(transaction: sql.Transaction, input: ProductInput):
     .input("clientId", sql.UniqueIdentifier, input.clientId)
     .input("clientSecretRef", sql.NVarChar(500), input.clientSecretRef)
     .input("authorityTenant", sql.UniqueIdentifier, input.authorityTenant)
-    .input("scopes", sql.NVarChar(sql.MAX), JSON.stringify(["openid", "profile", "email"]))
+    .input("scopes", sql.NVarChar(sql.MAX), JSON.stringify(input.scopes.length > 0 ? input.scopes : ["openid", "profile", "email"]))
     .query(`
       MERGE ProductEntraConfigs AS target
       USING (
