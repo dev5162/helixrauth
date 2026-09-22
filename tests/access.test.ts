@@ -5,8 +5,8 @@ import type { ProductConfig } from "../src/types.js";
 const product: ProductConfig = {
   id: "fileguard",
   name: "FileGuard",
-  appBaseUrl: "https://fileguard.helixrs.com",
-  allowedReturnOrigins: ["https://fileguard.helixrs.com"],
+  appBaseUrl: "https://gatr.helixrs.com",
+  allowedReturnOrigins: ["https://gatr.helixrs.com"],
   entra: {
     clientIdEnv: "FILEGUARD_ENTRA_CLIENT_ID",
     clientSecretEnv: "FILEGUARD_ENTRA_CLIENT_SECRET",

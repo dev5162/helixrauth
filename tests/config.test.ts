@@ -9,7 +9,7 @@ describe("parseCorsAllowedOrigins", () => {
 
   it("parses comma-separated origins and trims whitespace", () => {
     expect(
-      parseCorsAllowedOrigins("http://localhost:5173, https://fileguard.helixrs.com ,"),
-    ).toEqual(["http://localhost:5173", "https://fileguard.helixrs.com"]);
+      parseCorsAllowedOrigins("http://localhost:5173, https://gatr.helixrs.com ,"),
+    ).toEqual(["http://localhost:5173", "https://gatr.helixrs.com"]);
   });
 });

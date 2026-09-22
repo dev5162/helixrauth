@@ -5,8 +5,8 @@ import type { ProductConfig } from "../src/types.js";
 const product: ProductConfig = {
   id: "fileguard",
   name: "FileGuard",
-  appBaseUrl: "https://fileguard.helixrs.com",
-  allowedReturnOrigins: ["https://fileguard.helixrs.com", "http://localhost:5173"],
+  appBaseUrl: "https://gatr.helixrs.com",
+  allowedReturnOrigins: ["https://gatr.helixrs.com", "http://localhost:5173"],
   entra: {
     clientIdEnv: "FILEGUARD_ENTRA_CLIENT_ID",
     clientSecretEnv: "FILEGUARD_ENTRA_CLIENT_SECRET",
@@ -19,7 +19,7 @@ const product: ProductConfig = {
 
 describe("resolveReturnUrl", () => {
   it("defaults to the product base URL", () => {
-    expect(resolveReturnUrl(product)).toBe("https://fileguard.helixrs.com");
+    expect(resolveReturnUrl(product)).toBe("https://gatr.helixrs.com");
   });
 
   it("allows configured origins", () => {
@@ -30,7 +30,7 @@ describe("resolveReturnUrl", () => {
 
   it("supports relative paths under the product base URL", () => {
     expect(resolveReturnUrl(product, "/auth/callback")).toBe(
-      "https://fileguard.helixrs.com/auth/callback",
+      "https://gatr.helixrs.com/auth/callback",
     );
   });
 
