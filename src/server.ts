@@ -1,6 +1,7 @@
 import express from "express";
 import helmet from "helmet";
-import morgan from "morgan";
+import expressWinston from "express-winston";
+import { logger } from "./logger.js";
 import { createCorsMiddleware } from "./cors.js";
 import { createRouter } from "./routes.js";
 import { createAdminRouter, closeAdmin } from "./admin/routes.js";
@@ -17,7 +18,15 @@ export function createServer(config: AppConfig) {
   app.use(express.urlencoded({ extended: true }));
 
   if (config.nodeEnv !== "test") {
-    app.use(morgan("combined"));
+    app.use(
+      expressWinston.logger({
+        winstonInstance: logger,
+        meta: true,
+        msg: "HTTP {{req.method}} {{req.url}}",
+        expressFormat: true,
+        colorize: false,
+      })
+    );
   }
 
   const handoffStore = new HandoffStore(config.handoffCodeTtlSeconds);

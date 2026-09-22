@@ -2,11 +2,13 @@ import "dotenv/config";
 import { loadConfig } from "./config.js";
 import { createServer, shutdownServer } from "./server.js";
 
+import { logger } from "./logger.js";
+
 const config = loadConfig();
 const app = createServer(config);
 
 const server = app.listen(config.port, () => {
-  console.log(`Helixrs Auth Gateway listening on ${config.publicBaseUrl}`);
+  logger.info(`Helixrs Auth Gateway listening on ${config.publicBaseUrl}`);
 });
 
 process.on("SIGTERM", async () => {

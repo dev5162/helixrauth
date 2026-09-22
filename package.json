@@ -18,12 +18,14 @@
     "cookie": "^1.0.2",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "express-winston": "^4.2.0",
     "helmet": "^8.1.0",
     "jose": "^6.0.11",
+    "morgan": "^1.10.0",
     "mssql": "^11.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "morgan": "^1.10.0",
+    "winston": "^3.19.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

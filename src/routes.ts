@@ -8,6 +8,7 @@ import { appendQueryParam, resolveReturnUrl } from "./return-url.js";
 import { signAuthState, verifyAuthState } from "./state.js";
 import { createGatewayToken, getJwks, verifyGatewayToken } from "./tokens.js";
 import { getProduct } from "./product-store.js";
+import { logger } from "./logger.js";
 import type { AppConfig, ProductConfig } from "./types.js";
 
 type AsyncHandler = (request: Request, response: Response, next: NextFunction) => Promise<void>;
@@ -181,6 +182,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
     }
 
     if (isHttpError(error)) {
+      logger.warn(`API Error: ${error.message}`, { status: error.status, code: error.code });
       response.status(error.status).json({
         error: error.code,
         message: error.message,
@@ -188,7 +190,7 @@ export function createRouter(config: AppConfig, handoffStore = new HandoffStore(
       return;
     }
 
-    console.error(error);
+    logger.error("Unexpected server error", { error });
     response.status(500).json({
       error: "internal_server_error",
       message: "Unexpected server error.",
