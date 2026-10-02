@@ -72,3 +72,5 @@ jobs:
 
             nginx -t && nginx -s reload
           EOF
+
+          
