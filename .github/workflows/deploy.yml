@@ -65,7 +65,7 @@ jobs:
 
             pm2 delete helixrauth-dev
 
-            pm2 start cmd --name "helixrauth-dev" -- /c "node dist\src\index.js"
+            pm2 start dist\src\index.js --name "helixrauth-dev"
 
             pm2 startup windows -u HXR8-QA-SQL --hp C:\Users\HXR8-QA-SQL
             pm2 save
